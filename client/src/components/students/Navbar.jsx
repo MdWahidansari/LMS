@@ -18,7 +18,7 @@ const Navbar = () => {
   const {user}=useUser()
 
   return (
-    <div className={`flex items-center justify-between px-4 sm:px-10 md:px-14 lg:px-36 border-b border-gray-500 py-4  ${isCourseListPage ? 'bg-blue-300':'bg-[#565c81]'}`}>
+    <div className={`flex items-center justify-between px-4 sm:px-10 md:px-14 lg:px-36 border-b border-gray-500 py-4  ${isCourseListPage ? 'bg-blue-300':'bg-[#172161]'}`}>
   
 
 
