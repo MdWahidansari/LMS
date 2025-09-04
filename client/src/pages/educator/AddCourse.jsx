@@ -12,7 +12,7 @@
 //   const [discount, setDiscount] = useState(0);
 //   const [image, setImage] = useState(null);
 //   const [chapters, setChapters] = useState([]);
-  // const [showPopup, setShowPopup] = useState(false);
+//   const [showPopup, setShowPopup] = useState(false);
 
 //   const [currentChapterId, setCurrentChapterId] = useState(null);
 
