@@ -2,8 +2,6 @@ import { Webhook } from "svix";
 import User from "../models/User.js";
 
 //API controller function to Manage Clerk User with database
-
-
 export const clerkWebhooks=async(req, res)=>{
     try{
 
@@ -50,7 +48,7 @@ export const clerkWebhooks=async(req, res)=>{
 
         }
     } catch(error){
-        res.json({success: false, message: error.message})
+        res.json({success:false, message: error.message})
 
     }
 }
