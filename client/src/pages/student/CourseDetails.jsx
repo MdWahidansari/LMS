@@ -6,6 +6,8 @@ import { assets } from "../../assets/assets";
 import humanizeDuration from "humanize-duration";
 import Footer from "../../components/students/Footer";
 import YouTube from "react-youtube";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const CourseDetails = () => {
   const { id } = useParams();
@@ -22,16 +24,61 @@ const CourseDetails = () => {
     calculateCourseDuration,
     calculateNoOfLectures,
     currency,
+    backendUrl,
+    userData,
+    getToken,
   } = useContext(AppContext);
 
   const fetchCourseData = async () => {
-    const findCourse = allCourses.find((course) => course._id == id);
-    setCourseData(findCourse);
+   try {
+    const {data}=await axios.get(backendUrl + '/api/course/' + id)
+    console.log(data);
+
+    if(data.success){
+      setCourseData(data.courseData)
+    } else{
+      toast.error(data.message)
+    }
+   } catch (error) {
+    toast.error(error.message)
+    
+   }
   };
+
+  const enrollCourse=async ()=>{
+    try {
+      if(!userData){
+        return toast.warn('Login to Enroll');
+      }
+      if(isAllreadyInrolled){
+        return toast.warn('Already Enrolled')
+      }
+
+      const token=await getToken();
+
+      const {data}=await axios.post(backendUrl + '/api/user/purchase',{courseId: courseData._id}, {headers: {Authorization: `Bearer ${token}`}})
+
+      if(data.success){
+        const {session_url}=data
+        window.location.replace(session_url)
+      } else{
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+      
+    }
+  }
 
   useEffect(() => {
     fetchCourseData();
-  }, [allCourses]);
+  }, []);
+
+  useEffect(() => {
+   if(userData && courseData){
+    setIsAllReadyInrolled(userData.enrolledCourses.includes(courseData._id))
+   }
+  }, [userData, courseData]);
 
   const toggleSection = (index) => {
     setOpenSection((prev) => ({ ...prev, [index]: !prev[index] }));
@@ -84,7 +131,7 @@ const CourseDetails = () => {
 
           <p className="text-sm">
             Course By{" "}
-            <span className="text-blue-600 underline">GreetStack</span>
+            <span className="text-blue-600 underline">{courseData.educator.name}</span>
           </p>
           <div className="pt-8 text-gray-800">
             <h2 className="text-xl font-semibold">Course Structure</h2>
@@ -250,7 +297,7 @@ const CourseDetails = () => {
 
               <div className="h-4 w-px bg-gray-500/40"></div>
             </div>
-            <button className="md:mt-6 mt-4 w-full py-3 rounded bg-blue-600 text-white font-medium">
+            <button onClick={enrollCourse} className="md:mt-6 mt-4 w-full py-3 rounded bg-blue-600 text-white font-medium">
               {isAllreadyInrolled ? "Already Enrolled" : "Enrol Now"}
             </button>
 

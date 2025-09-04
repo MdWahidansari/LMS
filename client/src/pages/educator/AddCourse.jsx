@@ -331,12 +331,19 @@
 
 
 
-import React, { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import uniqid from "uniqid";
 import Quill from "quill";
 import { assets } from "../../assets/assets";
+import {AppContext} from '../../context/AppContext'
+import { toast } from "react-toastify";
+import axios from "axios";
+// import uniqid from 'uniqid';
 
 const AddCourse = () => {
+
+  const {backendUrl, getToken}=useContext(AppContext)
+
   const quillRef = useRef(null);
   const editorRef = useRef(null);
 
@@ -398,32 +405,211 @@ const AddCourse = () => {
   };
 
 
-  const addLecture=()=>{
-    setChapters(
-      chapters.map((chapter)=>{
-        if(chapter.chapterId===currentChapterId){
-          const newLecture={
-            ...lectureDetails,
-            lectureOrder:chapter.chapterContent.length>0 ? chapter.chapterContent.slice(-1)[0].lectureOrder+1:1,
-            lectureId:uniqid()
-          };
-          chapter.chapterContent.push(newLecture);
-        }
-        return chapter;
-      })
-    );
-    setShowPopup(false);
-    setLectureDetails({
-      lectureTitle:'',
-      lectureDuration:'',
-      lectureUrl:'',
-      isPreviewFree:false,
-    });
-  };
+  // const addLecture=()=>{
+  //   setChapters(
+  //     chapters.map((chapter)=>{
+  //       if(chapter.chapterId===currentChapterId){
+  //         const newLecture={
+  //           ...lectureDetails,
+  //           lectureOrder:chapter.chapterContent.length>0 ? chapter.chapterContent.slice(-1)[0].lectureOrder+1:1,
+  //           lectureId:uniqid()
+  //         };
+  //         chapter.chapterContent.push(newLecture);
+  //       }
+  //       return chapter;
+  //     })
+  //   );
 
-  const handleSubmit=async(e)=>{
-    e.preventDefault();
+  //   setShowPopup(false);
+  //   setLectureDetails({
+  //     lectureTitle:'',
+  //     lectureDuration:'',
+  //     lectureUrl:'',
+  //     isPreviewFree:false,
+  //   });
+  // };
+
+// const addLecture = () => {
+//   setChapters(
+//     chapters.map((chapter) => {
+//       if (chapter.chapterId === currentChapterId) {
+//         // Ensure chapterContent exists
+//         chapter.chapterContent = chapter.chapterContent || [];
+
+//         // Create new lecture with required fields
+//         const newLecture = {
+//           ...lectureDetails,
+//           lectureOrder:
+//             chapter.chapterContent.length > 0
+//               ? chapter.chapterContent[chapter.chapterContent.length - 1].lectureOrder + 1
+//               : 1,
+//           lectureId: uniqid(), // required for Mongoose validation
+//         };
+
+//         chapter.chapterContent.push(newLecture);
+//       }
+//       return chapter;
+//     })
+//   );
+
+//   setShowPopup(false);
+//   setLectureDetails({
+//     lectureTitle: "",
+//     lectureDuration: "",
+//     lectureUrl: "",
+//     isPreviewFree: false,
+//   });
+// };
+
+
+
+
+
+const addLectureAndSubmit = () => {
+  const updatedChapters = chapters.map((chapter) => {
+    if (chapter.chapterId === currentChapterId) {
+      chapter.chapterContent = chapter.chapterContent || [];
+      const newLecture = {
+        ...lectureDetails,
+        lectureOrder:
+          chapter.chapterContent.length > 0
+            ? chapter.chapterContent[chapter.chapterContent.length - 1].lectureOrder + 1
+            : 1,
+        lectureId: uniqid(),
+      };
+      chapter.chapterContent.push(newLecture);
+    }
+    return chapter;
+  });
+
+  setChapters(updatedChapters); // Update state
+
+  // Submit course using updatedChapters, not chapters
+  submitCourse({
+    ...courseDetails,
+    courseContent: updatedChapters,
+  });
+
+  setShowPopup(false);
+  setLectureDetails({
+    lectureTitle: "",
+    lectureDuration: "",
+    lectureUrl: "",
+    isPreviewFree: false,
+  });
+};
+
+
+
+
+
+
+
+  // const handleSubmit=async(e)=>{
+  //     console.log("Chapters before submitting:", chapters);
+  //   try {
+  //     e.preventDefault();
+  //     if(!image){
+  //       toast.error('Thumbnail Not Selected')
+  //     }
+
+  //     const courseData={
+  //       courseTitle,
+  //       courseDescription: quillRef.current.root.innerHTML,
+  //       coursePrice:Number(coursePrice),
+  //       discount:Number(discount),
+  //       courseContent:chapters,
+  //     }
+
+  //     const formData=new FormData();
+  //     formData.append('courseData', JSON.stringify(courseData))
+  //     formData.append('image', image)
+
+  //     const token=await getToken();
+  //     const {data}=await axios.post(backendUrl + '/api/educator/add-course', formData, {headers: {Authorization: `Bearer ${token}`}})
+
+  //     if(data.success){
+  //       toast.success(data.message)
+  //       setCourseTitle('')
+  //       setCourseprice(0)
+  //       setDiscount(0)
+  //       setImage(null)
+  //       setChapters([])
+  //       quillRef.current.root.innerHTML= ""
+  //     } else{
+  //       toast.error(data.message)
+  //     }
+      
+  //   } catch (error) {
+  //     toast.error(error.message)
+
+      
+  //   }
+  // }
+
+
+
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+  console.log("Chapters before submitting:", chapters);
+
+  try {
+    if (!image) {
+      toast.error("Thumbnail Not Selected");
+      return;
+    }
+
+    // Prepare chapters and lectures with required fields
+    const preparedChapters = chapters.map((chapter, chapterIndex) => ({
+      ...chapter,
+      chapterOrder: chapter.chapterOrder || chapterIndex + 1,
+      chapterContent: (chapter.chapterContent || []).map((lecture, lectureIndex) => ({
+        ...lecture,
+        lectureOrder: lecture.lectureOrder || lectureIndex + 1,
+        lectureId: lecture.lectureId || uniqid(),
+      })),
+    }));
+
+    const courseData = {
+      courseTitle,
+      courseDescription: quillRef.current.root.innerHTML,
+      coursePrice: Number(coursePrice),
+      discount: Number(discount),
+      courseContent: preparedChapters, // send prepared chapters
+    };
+
+    const formData = new FormData();
+    formData.append("courseData", JSON.stringify(courseData));
+    formData.append("image", image);
+
+    const token = await getToken();
+    const { data } = await axios.post(
+      backendUrl + "/api/educator/add-course",
+      formData,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    if (data.success) {
+      toast.success(data.message);
+      setCourseTitle("");
+      setCourseprice(0);
+      setDiscount(0);
+      setImage(null);
+      setChapters([]);
+      quillRef.current.root.innerHTML = "";
+    } else {
+      toast.error(data.message);
+    }
+  } catch (error) {
+    toast.error(error.response?.data?.message || error.message);
   }
+};
+
+
+
+
+
+
 
   // initialize quill
   useEffect(() => {
@@ -739,7 +925,8 @@ const AddCourse = () => {
         )}
 
         <button
-          type="button"
+          // type="button"
+          type="submit"
           className="bg-black text-white w-max py-2.5 px-8 rounded my-4"
         >
           ADD COURSE

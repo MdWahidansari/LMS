@@ -1,21 +1,49 @@
 import React, { useContext, useEffect, useState } from "react";
 import { AppContext } from "../../context/AppContext";
 import Loading from "../../components/students/Loading";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const MyCourses = () => {
-  const { currency, allCourses } = useContext(AppContext);
+  // const { currency, backendUrl, IsEducator, getToken } = useContext(AppContext);
+  const { currency, backendUrl, isEducator, getToken } = useContext(AppContext);
 
-  const [Courses, setCourses] = useState(null);
+
+  
+  const [courses, setCourses] = useState(null);
+
 
   const fetchEducatorCourses = async () => {
-    setCourses(allCourses);
+    try {
+      const token=await getToken();
+      const {data}=await axios.get(backendUrl + '/api/educator/courses', {
+      headers:{Authorization: `Bearer ${token}`}
+      })
+
+      data.success && setCourses(data.courses)
+      
+    } catch (error) {
+      toast.error(error.message);
+      
+    }
   };
 
-  useEffect(() => {
-    fetchEducatorCourses();
-  }, []);
 
-  return Courses ? (
+
+
+
+
+
+  useEffect(() => {
+     console.log("IsEducator:", isEducator);
+    if(isEducator){
+
+      fetchEducatorCourses()
+    }
+
+  }, [isEducator]);
+
+  return courses ? (
     <div className="h-screen flex flex-col items-start justify-between md:p-8 md:pb-0 -4 pt-8 pb-0">
       <div className="w-full">
         <h2 className="pb-4 text-lg font-medium">MY Courses</h2>
@@ -36,7 +64,7 @@ const MyCourses = () => {
            
 
             <tbody className="text-xs text-gray-500">
-              {Courses.map((course) => (
+              {courses.map((course) => (
                 <tr key={course._id} className="border-b border-gray-500/20">
                   <td className="px-2 py-2 flex items-center space-x-2 truncate">
                     <img
