@@ -8,39 +8,26 @@ const MyCourses = () => {
   // const { currency, backendUrl, IsEducator, getToken } = useContext(AppContext);
   const { currency, backendUrl, isEducator, getToken } = useContext(AppContext);
 
-
-  
   const [courses, setCourses] = useState(null);
-
 
   const fetchEducatorCourses = async () => {
     try {
-      const token=await getToken();
-      const {data}=await axios.get(backendUrl + '/api/educator/courses', {
-      headers:{Authorization: `Bearer ${token}`}
-      })
+      const token = await getToken();
+      const { data } = await axios.get(backendUrl + "/api/educator/courses", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-      data.success && setCourses(data.courses)
-      
+      data.success && setCourses(data.courses);
     } catch (error) {
       toast.error(error.message);
-      
     }
   };
 
-
-
-
-
-
-
   useEffect(() => {
-     console.log("IsEducator:", isEducator);
-    if(isEducator){
-
-      fetchEducatorCourses()
+    console.log("IsEducator:", isEducator);
+    if (isEducator) {
+      fetchEducatorCourses();
     }
-
   }, [isEducator]);
 
   return courses ? (
@@ -61,7 +48,6 @@ const MyCourses = () => {
                 </th>
               </tr>
             </thead>
-           
 
             <tbody className="text-xs text-gray-500">
               {courses.map((course) => (

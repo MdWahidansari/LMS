@@ -21,7 +21,8 @@ const App = () => {
 
   const isEducatorRoute=useMatch('/educator/*')
   return (
-    <div className='text-default min-h-screen bg-white'>
+    <div className=' text-default h-full min-h-screen bg-white'>
+    {/* <div className=' text-default mt-0 bg-red-800'> */}
       <ToastContainer/>
       {!isEducatorRoute &&  <Navbar />}
      
@@ -47,7 +48,6 @@ const App = () => {
 }
 
 export default App
-
 
 
 

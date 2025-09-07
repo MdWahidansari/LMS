@@ -30,54 +30,56 @@ const CourseDetails = () => {
   } = useContext(AppContext);
 
   const fetchCourseData = async () => {
-   try {
-    const {data}=await axios.get(backendUrl + '/api/course/' + id)
-    console.log(data);
-
-    if(data.success){
-      setCourseData(data.courseData)
-    } else{
-      toast.error(data.message)
-    }
-   } catch (error) {
-    toast.error(error.message)
-    
-   }
-  };
-
-  const enrollCourse=async ()=>{
     try {
-      if(!userData){
-        return toast.warn('Login to Enroll');
-      }
-      if(isAllreadyInrolled){
-        return toast.warn('Already Enrolled')
-      }
+      const { data } = await axios.get(backendUrl + "/api/course/" + id);
+      console.log(data);
 
-      const token=await getToken();
-
-      const {data}=await axios.post(backendUrl + '/api/user/purchase',{courseId: courseData._id}, {headers: {Authorization: `Bearer ${token}`}})
-
-      if(data.success){
-        const {session_url}=data
-        window.location.replace(session_url)
-      } else{
-        toast.error(data.message)
+      if (data.success) {
+        setCourseData(data.courseData);
+      } else {
+        toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message)
-      
+      toast.error(error.message);
     }
-  }
+  };
+
+  const enrollCourse = async () => {
+    try {
+      if (!userData) {
+        return toast.warn("Login to Enroll");
+      }
+      if (isAllreadyInrolled) {
+        return toast.warn("Already Enrolled");
+      }
+
+      const token = await getToken();
+
+      const { data } = await axios.post(
+        backendUrl + "/api/user/purchase",
+        { courseId: courseData._id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (data.success) {
+        const { session_url } = data;
+        window.location.replace(session_url);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
 
   useEffect(() => {
     fetchCourseData();
   }, []);
 
   useEffect(() => {
-   if(userData && courseData){
-    setIsAllReadyInrolled(userData.enrolledCourses.includes(courseData._id))
-   }
+    if (userData && courseData) {
+      setIsAllReadyInrolled(userData.enrolledCourses.includes(courseData._id));
+    }
   }, [userData, courseData]);
 
   const toggleSection = (index) => {
@@ -131,12 +133,14 @@ const CourseDetails = () => {
 
           <p className="text-sm">
             Course By{" "}
-            <span className="text-blue-600 underline">{courseData.educator.name}</span>
+            <span className="text-blue-600 underline">
+              {courseData.educator.name}
+            </span>
           </p>
           <div className="pt-8 text-gray-800">
             <h2 className="text-xl font-semibold">Course Structure</h2>
 
-            <div className="pt-5"> 
+            <div className="pt-5">
               {courseData.courseContent.map((chapter, index) => (
                 <div
                   key={index}
@@ -216,7 +220,7 @@ const CourseDetails = () => {
           {/* course courseDescription  */}
           <div className="py-20 text-sm md:text-default">
             <h3 className="text-xl font-semibold text-gray-800">
-              course Description
+              Course Description
             </h3>
             <p
               className="pt-3 rich-text"
@@ -297,7 +301,10 @@ const CourseDetails = () => {
 
               <div className="h-4 w-px bg-gray-500/40"></div>
             </div>
-            <button onClick={enrollCourse} className="md:mt-6 mt-4 w-full py-3 rounded bg-blue-600 text-white font-medium">
+            <button
+              onClick={enrollCourse}
+              className="md:mt-6 mt-4 w-full py-3 rounded bg-blue-600 text-white font-medium"
+            >
               {isAllreadyInrolled ? "Already Enrolled" : "Enrol Now"}
             </button>
 
